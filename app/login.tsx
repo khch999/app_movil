@@ -10,6 +10,8 @@ import {
   View,
 } from "react-native";
 
+const APIURL = "https://backend-api-cuarta-uno.vercel.app";
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -18,10 +20,13 @@ export default function LoginPage() {
 
   const handleLogin = async () => {
     try {
-      const res = await fetch("http://10.0.2.2:4000/api/v1/auth/login", {
+      const res = await fetch(`${APIURL}/api/v1/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({
+          email,
+          password,
+        }),
       });
       const data = await res.json();
 
