@@ -34,8 +34,11 @@ export default function LoginPage() {
         setError(data.message || "Error al iniciar sesión.");
         return;
       }
+      //guardar token
       await AsyncStorage.setItem("token", data.data.token);
-      router.replace("/(tabs)/profile");
+      //guardar rol
+      await AsyncStorage.setItem("rol", data.data.user.rol);
+      router.replace("/(tabs)/home");
     } catch (error) {
       setError("Error de conexión con el servidor.");
       console.log(error);
@@ -66,7 +69,13 @@ export default function LoginPage() {
           style={styles.input}
           secureTextEntry
         />
-        <Pressable style={styles.button} onPress={handleLogin}>
+        <Pressable
+          onPress={handleLogin}
+          style={({ pressed }) => [
+            styles.button,
+            pressed && { backgroundColor: "#e5e7eb" },
+          ]}
+        >
           <Text style={styles.buttonText}>Iniciar sesión</Text>
         </Pressable>
       </View>
@@ -84,33 +93,34 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   image: {
-    width: 96,
-    height: 96,
+    width: 120,
+    height: 120,
     borderRadius: 48,
     marginBottom: 8,
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: "bold",
   },
   form: {
-    width: 280,
+    width: "85%",
+    maxWidth: 420,
     backgroundColor: "#fff",
     padding: 20,
     borderRadius: 12,
     elevation: 4,
-    gap: 10,
+    gap: 13,
   },
   input: {
     borderWidth: 1,
-    borderColor: "#d1d5db",
-    padding: 10,
-    borderRadius: 6,
+    borderColor: "#e5e7eb",
+    padding: 12,
+    borderRadius: 8,
   },
   button: {
     backgroundColor: "#3b82f6",
     padding: 12,
-    borderRadius: 6,
+    borderRadius: 8,
     alignItems: "center",
   },
   buttonText: {

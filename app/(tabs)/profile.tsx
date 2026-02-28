@@ -1,3 +1,4 @@
+import { API_URL } from "@/src/config/api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -25,8 +26,6 @@ type Pet = {
   edad: number;
 };
 
-const APIURL = "https://backend-api-cuarta-uno.vercel.app";
-
 export default function ProfilePage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
@@ -35,15 +34,9 @@ export default function ProfilePage() {
   const [petsErr, setPetsErr] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      const token = await AsyncStorage.getItem("token");
-      if (!token) {
-        router.replace("/login");
-        return;
-      }
+    const fetchUser = async (token: string) => {
       try {
-        //petición datos de usuario, NO mascotas de ese usuario.
-        const res = await fetch(`${APIURL}/api/v1/auth/profile`, {
+        const res = await fetch(`${API_URL}/api/v1/auth/profile`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -55,37 +48,46 @@ export default function ProfilePage() {
         }
         const data = await res.json();
         setUser(data.data);
-        //obtener datos de las mascotas por usuario... get/pets/my
-        const petsRes = await fetch(`${APIURL}/api/v1/pets/my`, {
+      } catch (error) {
+        console.log("Error al obtener datos del usuario:", error);
+      }
+    };
+    const fetchPets = async (token: string) => {
+      try {
+        const res = await fetch(`${API_URL}/api/v1/pets/my`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
-        if (!petsRes.ok) {
-          console.error("Error al obtener mascotas de usuario");
-          setPetsErr("No se pudieron cargar las mascotas.");
-          // setPets([]);
-          // setPetsLoaded(true);
+        if (!res.ok) {
+          setPetsErr("No se pudieron cargar los datos de las mascotas.");
           return;
         }
-        const petsJson = await petsRes.json();
-        setPets(petsJson.data);
+        const data = await res.json();
+        setPets(data.data);
         setPetsLoaded(true);
       } catch (error) {
-        console.log("Error cargando datos usuario:", error);
-        setPetsErr("Error al cargar las mascotas.");
-        setPets([]);
+        console.log("Error cargando mascotas:", error);
+        setPetsErr("Error al cargar mascotas.");
         setPetsLoaded(true);
       }
     };
-    fetchProfile();
+    const init = async () => {
+      const token = await AsyncStorage.getItem("token");
+      if (!token) {
+        router.replace("/login");
+        return;
+      }
+      await fetchUser(token);
+      await fetchPets(token);
+    };
+    init();
   }, []);
-
   const handleLogout = async () => {
     const token = await AsyncStorage.getItem("token");
     if (token) {
       try {
-        await fetch(`${APIURL}/api/v1/auth/logout`, {
+        await fetch(`${API_URL}/api/v1/auth/logout`, {
           method: "POST",
           headers: {
             Authorization: `Bearer ${token}`,
@@ -98,11 +100,18 @@ export default function ProfilePage() {
     await AsyncStorage.removeItem("token");
     router.replace("/login");
   };
+
   if (!user) {
-    return <Text style={styles.loading}>Cargando perfil...</Text>;
+    return (
+      <SafeAreaView
+        style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
+      >
+        <Text>Cargando perfil</Text>
+      </SafeAreaView>
+    );
   }
   return (
-    <SafeAreaView>
+    <SafeAreaView style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.title}>Perfil de usuario</Text>
         <Image
@@ -115,8 +124,12 @@ export default function ProfilePage() {
           <Text>
             <Text style={styles.bold}>Nombre: </Text>
             {user.nombre}
+          </Text>
+          <Text>
             <Text style={styles.bold}>Email: </Text>
             {user.email}
+          </Text>
+          <Text>
             <Text style={styles.bold}>Teléfono: </Text>
             {user.telefono}
           </Text>
@@ -158,26 +171,6 @@ export default function ProfilePage() {
         </Pressable>
       </ScrollView>
     </SafeAreaView>
-    //     <View style={styles.container}>
-    //       <Text style={styles.title}> Perfil de usuario</Text>
-    //       <Image
-    //         source={{
-    //           uri: "https://cdn-icons-png.flaticon.com/512/847/847969.png",
-    //         }}
-    //         style={styles.avatar}
-    //       />
-    //       <View>
-    //         <Text>
-    //           <Text style={styles.bold}>Nombre:</Text> {user.nombre}
-    //         </Text>
-    //         <Text>
-    //           <Text style={styles.bold}>Email:</Text> {user.email}
-    //         </Text>
-    //         <Text>
-    //           <Text style={styles.bold}>Teléfono:</Text> {user.telefono}
-    //         </Text>
-    //       </View>
-    //     </View>
   );
 }
 const styles = StyleSheet.create({
@@ -266,7 +259,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   logoutText: {
-    color: "#fff",
+    color: "#ffffff",
     fontWeight: "bold",
   },
   loading: {

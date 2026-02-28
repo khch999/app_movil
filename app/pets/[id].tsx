@@ -7,8 +7,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const APIURL = "https://backend-api-cuarta-uno.vercel.app";
 
 type MedicalPet = {
-  id_mascota: number;
-  nombre_mascota: string;
+  id: number;
+  nombre: string;
   especie: string;
   raza: string;
   edad: number;
@@ -61,7 +61,7 @@ export default function MedicalPage() {
         <Text style={styles.title}>Ficha médica</Text>
 
         <View style={styles.card}>
-          <Text style={styles.name}>{pet.nombre_mascota}</Text>
+          <Text style={styles.name}>{pet.nombre}</Text>
           <Text>
             {pet.especie} · {pet.raza}
           </Text>
